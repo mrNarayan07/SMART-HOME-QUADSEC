@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Capture - Face Recognition System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/enhanced_dashboard.css') }}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt pulse"></i>
+                Home Security Pro
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/live">
+                            <i class="fas fa-video"></i> Live Stream
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/camera">
+                            <i class="fas fa-camera"></i> Manual Capture
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/search">
+                            <i class="fas fa-search"></i> Search
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="navbar-text">
+                    <span class="status-indicator" id="systemStatus">
+                        <i class="fas fa-circle text-success pulse"></i>
+                        <span class="d-none d-md-inline">System Online</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid main-content">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="page-header">
+                    <h2><i class="fas fa-camera"></i> Manual Camera Capture</h2>
+                    <p class="text-muted">Capture images directly from your device camera for manual security logging</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Camera Section -->
+            <div class="col-lg-8">
+                <div class="camera-card">
+                    <div class="camera-header">
+                        <h5><i class="fas fa-video"></i> Camera Feed</h5>
+                        <div class="camera-controls">
+                            <button class="btn btn-success" id="startCameraBtn">
+                                <i class="fas fa-video"></i> Start Camera
+                            </button>
+                            <button class="btn btn-danger d-none" id="stopCameraBtn">
+                                <i class="fas fa-stop"></i> Stop Camera
+                            </button>
+                            <button class="btn btn-info" id="switchCameraBtn">
+                                <i class="fas fa-sync-alt"></i> Switch Camera
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="camera-container">
+                        <video id="cameraVideo" class="camera-video" autoplay playsinline></video>
+                        <canvas id="captureCanvas" class="d-none"></canvas>
+                        
+                        <!-- Camera Overlay -->
+                        <div class="camera-overlay" id="cameraOverlay">
+                            <div class="overlay-content">
+                                <i class="fas fa-camera fa-4x mb-3"></i>
+                                <h4>Camera Not Active</h4>
+                                <p>Click "Start Camera" to begin capturing</p>
+                                <div class="camera-permissions-note">
+                                    <i class="fas fa-info-circle"></i>
+                                    <small>This page will request camera permissions</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Capture Button -->
+                        <div class="capture-button-container">
+                            <button class="btn btn-primary btn-lg capture-btn d-none" id="captureBtn">
+                                <i class="fas fa-camera"></i>
+                                <span class="capture-text">Capture</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Recording Indicator -->
+                        <div class="recording-indicator d-none" id="recordingIndicator">
+                            <div class="rec-dot"></div>
+                            <span>LIVE</span>
+                        </div>
+                        
+                        <!-- Resolution Info -->
+                        <div class="resolution-info" id="resolutionInfo">
+                            <i class="fas fa-info-circle"></i>
+                            <span>1280x720</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Camera Settings -->
+                    <div class="camera-settings mt-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="resolutionSelect" class="form-label">Resolution:</label>
+                                <select class="form-select form-select-sm" id="resolutionSelect">
+                                    <option value="1280x720" selected>720p HD (1280x720)</option>
+                                    <option value="1920x1080">1080p FHD (1920x1080)</option>
+                                    <option value="640x480">480p (640x480)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="facingModeSelect" class="form-label">Camera:</label>
+                                <select class="form-select form-select-sm" id="facingModeSelect">
+                                    <option value="user">Front Camera</option>
+                                    <option value="environment" selected>Back Camera</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Capture Mode:</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="continuousModeSwitch">
+                                    <label class="form-check-label" for="continuousModeSwitch">
+                                        Continuous Mode
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Capture Info & History -->
+            <div class="col-lg-4">
+                <div class="capture-info-card">
+                    <div class="capture-info-header">
+                        <h5><i class="fas fa-info-circle"></i> Capture Information</h5>
+                    </div>
+                    
+                    <div class="capture-form">
+                        <div class="mb-3">
+                            <label for="captureNotes" class="form-label">Notes (Optional):</label>
+                            <textarea class="form-control" id="captureNotes" rows="3" 
+                                      placeholder="Add notes about this capture..."></textarea>
+                        </div>
+                        
+                        <div class="capture-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Captures Today:</span>
+                                <span class="stat-value" id="capturesToday">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Last Capture:</span>
+                                <span class="stat-value" id="lastCapture">Never</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Camera Status:</span>
+                                <span class="stat-value" id="cameraStatus">Inactive</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Captures -->
+                    <div class="recent-captures mt-4">
+                        <h6><i class="fas fa-history"></i> Recent Manual Captures</h6>
+                        <div class="recent-captures-list" id="recentCapturesList">
+                            <div class="no-captures">
+                                <i class="fas fa-camera"></i>
+                                <span>No manual captures yet</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Instructions -->
+                <div class="instructions-card mt-4">
+                    <div class="instructions-header">
+                        <h6><i class="fas fa-question-circle"></i> How to Use</h6>
+                    </div>
+                    <div class="instructions-content">
+                        <ol class="instructions-list">
+                            <li>Click <strong>"Start Camera"</strong> to activate your device camera</li>
+                            <li>Allow camera permissions when prompted</li>
+                            <li>Position the camera to capture the area of interest</li>
+                            <li>Click the <strong>"Capture"</strong> button to take a photo</li>
+                            <li>Add optional notes for context</li>
+                            <li>The capture will be automatically logged in the system</li>
+                        </ol>
+                        
+                        <div class="tips mt-3">
+                            <h6><i class="fas fa-lightbulb"></i> Tips:</h6>
+                            <ul class="tips-list">
+                                <li>Use good lighting for better image quality</li>
+                                <li>Keep the camera steady when capturing</li>
+                                <li>Use the back camera for better quality</li>
+                                <li>Add descriptive notes for future reference</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Captured Image Preview -->
+        <div class="row mt-4 d-none" id="capturePreviewRow">
+            <div class="col-12">
+                <div class="capture-preview-card">
+                    <div class="capture-preview-header">
+                        <h5><i class="fas fa-image"></i> Capture Preview</h5>
+                        <div class="preview-actions">
+                            <button class="btn btn-success" id="confirmCaptureBtn">
+                                <i class="fas fa-check"></i> Confirm & Save
+                            </button>
+                            <button class="btn btn-outline-secondary" id="retakeCaptureBtn">
+                                <i class="fas fa-redo"></i> Retake
+                            </button>
+                            <button class="btn btn-outline-danger" id="discardCaptureBtn">
+                                <i class="fas fa-times"></i> Discard
+                            </button>
+                        </div>
+                    </div>
+                    <div class="capture-preview-content">
+                        <img id="capturePreviewImg" src="" alt="Captured image" class="capture-preview-img">
+                        <div class="capture-details">
+                            <p><strong>Timestamp:</strong> <span id="captureTimestamp"></span></p>
+                            <p><strong>Resolution:</strong> <span id="captureResolution"></span></p>
+                            <p><strong>File Size:</strong> <span id="captureFileSize"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-success" id="successModalLabel">
+                        <i class="fas fa-check-circle"></i> Capture Successful
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <h5>Image Captured & Logged!</h5>
+                        <p class="text-muted">Your manual capture has been successfully saved to the security system.</p>
+                        <div class="success-details">
+                            <p><strong>Log ID:</strong> <span id="successLogId">#12345</span></p>
+                            <p><strong>Filename:</strong> <span id="successFileName">manual_capture.jpg</span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="window.location.href='/'">
+                        <i class="fas fa-tachometer-alt"></i> View Dashboard
+                    </button>
+                    <button type="button" class="btn btn-success" id="captureAnotherBtn" data-bs-dismiss="modal">
+                        <i class="fas fa-camera"></i> Capture Another
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger" id="errorModalLabel">
+                        <i class="fas fa-exclamation-triangle"></i> Capture Error
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                        <h5>Camera Access Error</h5>
+                        <p class="text-muted" id="errorMessage">Failed to access camera. Please check permissions.</p>
+                        <div class="troubleshooting">
+                            <h6><i class="fas fa-tools"></i> Troubleshooting:</h6>
+                            <ul class="text-start">
+                                <li>Allow camera permissions when prompted</li>
+                                <li>Check if another app is using the camera</li>
+                                <li>Try refreshing the page</li>
+                                <li>Ensure camera is properly connected</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="location.reload()">
+                        <i class="fas fa-sync-alt"></i> Refresh Page
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/camera_capture.js') }}"></script>
+</body>
+</html>
